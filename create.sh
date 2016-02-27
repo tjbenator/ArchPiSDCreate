@@ -24,6 +24,25 @@ confirm () {
     esac
 }
 
+#Check if all required programs are installed(useful for people running minimal systems)
+hash parted &> /dev/null
+if [ $? -eq 1 ]; then
+  echo >&2 "Parted is not installed. Aborting!"
+  exit $?
+fi
+
+hash mkfs.vfat &> /dev/null
+if [ $? -eq 1 ]; then
+    echo >&2 "Mkfs.vfat is not avalible. Aborting!"
+    exit $?
+fi
+
+hash curl &> /dev/null
+if [ $? -eq 1 ]; then
+  echo >&2 "Curl is not installed. Aborting!"
+  exit $?
+fi
+
 #Check if disk exists
 if [ ! -e "$DISK" ]; then
   echo "The disk you specified does not exist"
