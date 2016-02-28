@@ -33,8 +33,8 @@ fi
 
 hash mkfs.vfat &> /dev/null
 if [ $? -eq 1 ]; then
-    echo >&2 "Mkfs.vfat is not avalible. Aborting!"
-    exit $?
+  echo >&2 "Mkfs.vfat is not avalible. Aborting!"
+  exit $?
 fi
 
 hash curl &> /dev/null
@@ -50,15 +50,15 @@ if [ ! -e "$DISK" ]; then
 fi
 
 #Check if disk is mounted
-if grep -qs '$DISK' /proc/mounts; then
-    #Abort. We do not want to risk over writing a disk that is in use.
-    echo "The disk you specified is currently mounted. Aborting! "
-    exit 1
+if grep -qs "$DISK" /proc/mounts; then
+  #Abort. We do not want to risk over writing a disk that is in use.
+  echo "The disk you specified is currently mounted. Aborting! "
+  exit 1
 fi
 
 #Create storage directory
-if [ ! -d $STORAGE ]; then
-   mkdir -p $STORAGE
+if [ ! -d "$STORAGE" ]; then
+   mkdir -p "$STORAGE"
 fi
 
 #Which Pi are we creating a SD card for?
@@ -66,28 +66,30 @@ PS3='Which Pi are you creating an SD for: '
 options=("Pi" "Pi2" "Quit")
 select opt in "${options[@]}"
 do
-    case $opt in
-        Pi)
-            IMAGE=$R1IMAGE
-            IMAGEMD5SUM=$R1IMAGEMD5
-            break
-            ;;
-        Pi2)
-            IMAGE=$R2IMAGE
-            IMAGEMD5SUM=$R2IMAGEMD5
-            break
-            ;;
-        *) echo Invalid Entry. Please select a valid Pi;;
-    esac
+  case $opt in
+    Pi)
+      IMAGE=$R1IMAGE
+      IMAGEMD5SUM=$R1IMAGEMD5
+      break
+      ;;
+    Pi2)
+      IMAGE=$R2IMAGE
+      IMAGEMD5SUM=$R2IMAGEMD5
+      break
+      ;;
+    *)
+      echo Invalid Entry. Please select a valid Pi
+      ;;
+  esac
 done
 
 #We will update unless decided otherwise.
 UPDATE=true
 
 #Does the image exist on the disk?
-if [ -f $STORAGE$IMAGE ]; then
-  SERVERMD5=$(curl -skL $MIRROR$IMAGEMD5SUM | awk -F ' ' '{print $1}')
-  LOCALMD5=$(md5sum $STORAGE$IMAGE | awk -F ' ' '{print $1}')
+if [ -f "$STORAGE$IMAGE" ]; then
+  SERVERMD5=$(curl -skL "$MIRROR$IMAGEMD5SUM" | awk -F ' ' '{print $1}')
+  LOCALMD5=$(md5sum "$STORAGE$IMAGE" | awk -F ' ' '{print $1}')
 
   #Do we have the current version?
   if [ "$LOCALMD5" = "$SERVERMD5" ]; then
@@ -98,7 +100,7 @@ fi
 #Update if required.
 if $UPDATE; then
   echo "Selected image is out of date. Downloading the latest version..."
-  curl -Lo $STORAGE$IMAGE $MIRROR$IMAGE
+  curl -Lo "$STORAGE$IMAGE" "$MIRROR$IMAGE"
 else
   echo "Selected image is up to date!"
 fi
@@ -133,11 +135,11 @@ EOF
 echo "Refresh partition"
 partprobe "${DISK}"
 
-if grep -qs '${DISK}1' /proc/mounts; then
+if grep -qs "${DISK}1" /proc/mounts; then
   umount "${DISK}1"
 fi
 
-if grep -qs '${DISK}2' /proc/mounts; then
+if grep -qs "${DISK}2" /proc/mounts; then
   umount "${DISK}2"
 fi
 
