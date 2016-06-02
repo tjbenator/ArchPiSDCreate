@@ -63,7 +63,7 @@ fi
 
 #Which Pi are we creating a SD card for?
 PS3='Which Pi are you creating an SD for: '
-options=("Pi" "Pi2" "Quit")
+options=("Pi" "Pi2" "Pi3" "Quit")
 select opt in "${options[@]}"
 do
   case $opt in
@@ -72,7 +72,7 @@ do
       IMAGEMD5SUM=$R1IMAGEMD5
       break
       ;;
-    Pi2)
+    Pi2|Pi3)
       IMAGE=$R2IMAGE
       IMAGEMD5SUM=$R2IMAGEMD5
       break
