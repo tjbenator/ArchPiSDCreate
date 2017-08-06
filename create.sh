@@ -2,7 +2,7 @@
 DISK=$1
 STORAGE=$HOME/Downloads/ArchLinuxARM/
 
-MIRROR=http://archlinuxarm.org/os/
+MIRROR=http://mirror.archlinuxarm.org/os/
 
 R1IMAGE=ArchLinuxARM-rpi-latest.tar.gz
 R1IMAGEMD5=ArchLinuxARM-rpi-latest.tar.gz.md5
@@ -53,6 +53,7 @@ fi
 if grep -qs "$DISK" /proc/mounts; then
   #Abort. We do not want to risk over writing a disk that is in use.
   echo "The disk you specified is currently mounted. Aborting! "
+  mount | grep "$DISK"
   exit 1
 fi
 
@@ -84,7 +85,7 @@ do
 done
 
 #We will update unless decided otherwise.
-UPDATE=true
+UPDATE=false
 
 #Does the image exist on the disk?
 if [ -f "$STORAGE$IMAGE" ]; then
@@ -143,23 +144,33 @@ if grep -qs "${DISK}2" /proc/mounts; then
   umount "${DISK}2"
 fi
 
-TEMPBOOT=/tmp/ArchPiSDCreate/boot
+
 TEMPROOT=/tmp/ArchPiSDCreate/root
+TEMPBOOT=/tmp/ArchPiSDCreate/root/boot
 
 mkfs.vfat "${DISK}1"
 mkfs.ext4 "${DISK}2"
 
-mkdir -p "$TEMPBOOT"
 mkdir -p "$TEMPROOT"
-
-mount "${DISK}1" "$TEMPBOOT"
 mount "${DISK}2" "$TEMPROOT"
+
+mkdir -p "$TEMPBOOT"
+mount "${DISK}1" "$TEMPBOOT"
 
 bsdtar -xpf "$STORAGE$IMAGE" -C "$TEMPROOT"
 echo "Syncing disk... (This may take a few minutes)"
 sync
 
-mv "$TEMPROOT"/boot/* "$TEMPBOOT"
+pushd "$TEMPROOT"
+cp /etc/resolv.conf run/systemd/resolve/resolv.conf
+mount -t proc /proc proc
+mount --rbind /sys sys
+mount --rbind /dev dev
+if [ -d /run ]; then
+    mount --rbind /run run    # (assuming /run exists on the system)
+fi
+
+chroot "$TEMPROOT" /bin/bash
 
 #TODO:
 # CHROOT in to our newly imaged SD Card
